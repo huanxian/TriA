@@ -6,6 +6,7 @@ First, install the dependency libraries:
 
 ```shell
 conda env create -f environment.yml
+conda activate AudioPipeline
 ```
 
 Then download the required model checkpoint and place it in the `ckpt/`:
