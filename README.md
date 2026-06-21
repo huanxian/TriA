@@ -28,6 +28,12 @@ huggingface-cli download microsoft/msclap
 python3 main.py --input_folder_path /path_to_raw_audio_directory
 ```
 
+The default filtering thresholds for PC, PQ and CLAP Similarity are 2.24, 5.85 and 7.43 respectively, which are obtained by statistically analyzing datasets related to the domestic audio classification task. You can set a more appropriate filtering threshold according to the target task:
+
+```shell
+python3 main.py --input_folder_path /path_to_raw_audio_directory --pc_threshold 2.24 --pq_threshold 5.85 --clap_threshold 7.43
+```
+
 ## TODO
 
 - [x] Release the source code of the TriA Pipeline.
@@ -37,4 +43,3 @@ python3 main.py --input_folder_path /path_to_raw_audio_directory
 ## Acknowledgement
 
 We borrow a lot of code from [Emilia](https://github.com/open-mmlab/Amphion/tree/main/preprocessors/Emilia), [BEATs](https://github.com/microsoft/unilm/tree/master/beats)...
-
