@@ -616,7 +616,7 @@ def save_clips(audio, evaluation_metric_result, save_path, audio_idx):
                                     ensure_ascii=False) + "\n")
 
 
-def main_process(audio_path, audio_idx=None, save_path=None, audio_name=None):
+def main_process(audio_path, audio_idx=None, save_path=None, audio_name=None, args=None):
     """
     Process the audio file, including standardization, audio activity detection, audio event detection, filtering, export to MP3 and jsonl.
 
@@ -625,6 +625,7 @@ def main_process(audio_path, audio_idx=None, save_path=None, audio_name=None):
         save_path (str, optional): Save path, defaults to None, which means saving in the "_processed" folder in the audio file's directory.
         audio_name (str, optional): Audio file name, defaults to None, which means using the file name from the audio file path.
         audio_idx (int): Audio index.
+        args (argparse.Namespace): The arguments from command line.
 
     Return:
         None
@@ -682,7 +683,8 @@ def main_process(audio_path, audio_idx=None, save_path=None, audio_name=None):
                 average PC: {avg_evaluation_metric[2]}, average PQ: {avg_evaluation_metric[3]}, average CLAP: {avg_evaluation_metric[4]}")
 
     logger.info(f"Audio_idx: {audio_idx}. Step 4.2b: Filter out segments with less than fixed aes and clap threshold")
-    audio = filter_version_b(audio, evaluation_metric_result)
+    filtering_threshold = [1, 1, args.pc_threshold, args.pq_threshold, (args.clap_threshold, args.clap_threshold)]
+    audio = filter_version_b(audio, evaluation_metric_result, threshold=filtering_threshold)
 
     if len(audio["filtered_result"]) == 0:
         # if the length of filtered result is zero
@@ -711,6 +713,24 @@ if __name__ == "__main__":
         type=int,
         default=10,
         help="The number of parallel processing threads.",
+    )
+    parser.add_argument(
+        "--pc_threshold",
+        type=float,
+        default=2.24,
+        help="PC threshold for filtering",
+    )
+    parser.add_argument(
+        "--pq_threshold",
+        type=float,
+        default=5.85,
+        help="PQ threshold for filtering",
+    )
+    parser.add_argument(
+        "--clap_threshold",
+        type=float,
+        default=7.43,
+        help="CLAP threshold for filtering",
     )
     args = parser.parse_args()
 
@@ -758,7 +778,7 @@ if __name__ == "__main__":
     # multithreaded parallel processing
     with ThreadPoolExecutor(max_workers=args.threads, thread_name_prefix="outer") as outer_executor:
         outer_futures = [
-            outer_executor.submit(main_process, path, audio_idx)
+            outer_executor.submit(main_process, path, audio_idx, args=args)
             for audio_idx, path in enumerate(audio_paths)
             ]
         all_results = [outer_future.result() for outer_future in outer_futures]
